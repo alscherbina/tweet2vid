@@ -1,6 +1,11 @@
 const needle = require("needle");
 const fs = require("fs");
 require("dotenv-safe").config();
+const videoDir = process.env.VIDEO_DIR;
+
+if (!fs.existsSync(videoDir)) {
+  fs.mkdirSync(videoDir);
+}
 
 async function getGuestToken() {
   const headers = {
@@ -23,8 +28,8 @@ async function downloadVideo(postURL = "https://twitter.com/pullover_/status/113
 
   console.log(response.body.track.playbackUrl);
   console.log(response.body.posterImage);
-  needle.get(response.body.posterImage).pipe(fs.createWriteStream("./" + tweetId + ".jpg"));
-  needle.get(response.body.track.playbackUrl).pipe(fs.createWriteStream("./" + tweetId + ".mp4"));
+  needle.get(response.body.posterImage).pipe(fs.createWriteStream(`${videoDir}/${tweetId}.jpg`));
+  needle.get(response.body.track.playbackUrl).pipe(fs.createWriteStream(`${videoDir}/${tweetId}.mp4`));
 }
 
-downloadVideo();
+downloadVideo(process.argv[2]);
