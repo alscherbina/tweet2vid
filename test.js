@@ -1,6 +1,8 @@
 const needle = require('needle');
 const fs = require('fs');
+const parseM3u8 = require('parse-m3u8');
 require('dotenv-safe').config();
+
 const videoDir = process.env.VIDEO_DIR;
 const defaultHeaders = {
   authorization: `Bearer ${process.env.BEARER_TOKEN}`
@@ -33,7 +35,16 @@ async function downloadVideo(postURL = 'https://twitter.com/pullover_/status/113
   console.log(response.body.track.playbackUrl);
   console.log(response.body.posterImage);
   needle.get(response.body.posterImage).pipe(fs.createWriteStream(`${videoDir}/${tweetId}.jpg`));
-  needle.get(response.body.track.playbackUrl).pipe(fs.createWriteStream(`${videoDir}/${tweetId}.mp4`));
+  if (response.body.track.playbackUrl.includes('.m3u8')) {
+    const fileName = `${videoDir}/${tweetId}.m3u8`;
+    const w = needle.get(response.body.track.playbackUrl).pipe(fs.createWriteStream(fileName));
+    w.on('finish', () => {
+      const contents = fs.readFileSync(fileName, 'utf8');
+      console.log(parseM3u8(contents));
+    });
+  } else {
+    needle.get(response.body.track.playbackUrl).pipe(fs.createWriteStream(`${videoDir}/${tweetId}.mp4`));
+  }
 }
 
 downloadVideo(process.argv[2]);
