@@ -38,41 +38,49 @@ async function getTweetConfig(tweetId) {
   return response;
 }
 
-async function downloadM3u8(tweetId, uri) {
-  const fileName = `${videoDir}/${tweetId}.m3u8`;
-
+async function downloadM3u8(uri, filename) {
   const response = await needle('get', uri);
   const m3u8 = parseM3u8(response.body.toString('utf8'));
   console.log(m3u8);
 }
 
-async function downloadMp4(tweetId, uri) {
-  needle.get(uri).pipe(fs.createWriteStream(`${videoDir}/${tweetId}.mp4`));
+async function downloadFile(uri, filename) {
+  return pipeline(needle.get(uri), fs.createWriteStream(filename));
 }
 
-async function downloadVideo(postURL = 'https://twitter.com/pullover_/status/1135832570669797376') {
+async function downloadVideo(uri, filename) {
+  let videoDownloadPromise = Promise.resolve();
+  if (uri.includes('.m3u8')) {
+    videoDownloadPromise = downloadM3u8(uri, filename);
+  } else {
+    videoDownloadPromise = downloadFile(uri, filename);
+  }
+  return videoDownloadPromise;
+}
+
+async function downloadMedia(postURL = 'https://twitter.com/pullover_/status/1135832570669797376') {
   const tweetId = postURL.slice(postURL.lastIndexOf('/'));
   const result = {
     videoFile: `${videoDir}/${tweetId}.mp4`,
     thumbnailFile: `${videoDir}/${tweetId}.jpg`
   };
-  const tweetConfig = await getTweetConfig(tweetId);
-  const posterImageUrl = tweetConfig.body.posterImage;
-  const { playbackUrl } = tweetConfig.body.track;
-  result.thumbnailFile = `${videoDir}/${tweetId}.jpg`;
 
-  const imageDownloadPromise = pipeline(needle.get(posterImageUrl), fs.createWriteStream(result.thumbnailFile));
-  let videoDownloadPromise = Promise.resolve();
-  if (playbackUrl.includes('.m3u8')) {
-    videoDownloadPromise = downloadM3u8(tweetId, playbackUrl);
+  const tweetConfig = await getTweetConfig(tweetId);
+  if (tweetConfig && tweetConfig.body && tweetConfig.body.posterImage && tweetConfig.body.track) {
+    const posterImageUrl = tweetConfig.body.posterImage;
+    const imageDownloadPromise = downloadFile(posterImageUrl, result.thumbnailFile);
+    const { playbackUrl } = tweetConfig.body.track;
+    const videoDownloadPromise = downloadVideo(playbackUrl, result.videoFile);
+    await Promise.all([imageDownloadPromise, videoDownloadPromise]);
   } else {
-    videoDownloadPromise = downloadMp4(playbackUrl);
+    throw Error(`Can't load tweet video config from ${postURL}`);
   }
-  await Promise.all([imageDownloadPromise, videoDownloadPromise]);
   return result;
 }
 
 (async () => {
-  const res = await downloadVideo(process.argv[2]);
+  //https://twitter.com/streloksig/status/1136005413617459202
+  //https://twitter.com/pullover_/status/1135910845257359361
+  const res = await downloadMedia(process.argv[2]);
   console.log(res);
 })().catch(error => console.error(error));
