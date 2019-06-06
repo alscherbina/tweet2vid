@@ -1,3 +1,5 @@
+/* eslint-disable no-await-in-loop */
+/* eslint-disable no-restricted-syntax */
 const needle = require('needle');
 const fs = require('fs');
 const parseM3u8 = require('parse-m3u8');
@@ -38,10 +40,26 @@ async function getTweetConfig(tweetId) {
   return response;
 }
 
-async function downloadM3u8(uri, filename) {
-  const response = await needle('get', uri);
-  const m3u8 = parseM3u8(response.body.toString('utf8'));
-  console.log(m3u8);
+function chooseBestQualityPlaylist(playlists) {
+  const playlistWithBestQuality = playlists.reduce((result, playlist) => {
+    if (!result.attributes || result.attributes.BANDWIDTH < playlist.attributes.BANDWIDTH) {
+      return playlist;
+    }
+    return result;
+  }, {});
+  return playlistWithBestQuality;
+}
+
+async function downloadM3u8Media(uri, filename) {
+  const domain = 'https://video.twimg.com';
+  let response = await needle('get', uri);
+  let m3u8 = parseM3u8(response.body.toString('utf8'));
+  const playList = chooseBestQualityPlaylist(m3u8.playlists);
+  response = await needle('get', domain + playList.uri);
+  m3u8 = parseM3u8(response.body.toString('utf8'));
+  for (const segment of m3u8.segments) {
+    await pipeline(needle.get(domain + segment.uri), fs.createWriteStream(filename, { flags: 'a' }));
+  }
 }
 
 async function downloadFile(uri, filename) {
@@ -51,14 +69,14 @@ async function downloadFile(uri, filename) {
 async function downloadVideo(uri, filename) {
   let videoDownloadPromise = Promise.resolve();
   if (uri.includes('.m3u8')) {
-    videoDownloadPromise = downloadM3u8(uri, filename);
+    videoDownloadPromise = downloadM3u8Media(uri, filename);
   } else {
     videoDownloadPromise = downloadFile(uri, filename);
   }
   return videoDownloadPromise;
 }
 
-async function downloadMedia(postURL = 'https://twitter.com/pullover_/status/1135832570669797376') {
+async function downloadMedia(postURL = 'https://twitter.com/pullover_/status/1135910845257359361') {
   const tweetId = postURL.slice(postURL.lastIndexOf('/'));
   const result = {
     videoFile: `${videoDir}/${tweetId}.mp4`,
@@ -79,8 +97,9 @@ async function downloadMedia(postURL = 'https://twitter.com/pullover_/status/113
 }
 
 (async () => {
-  //https://twitter.com/streloksig/status/1136005413617459202
-  //https://twitter.com/pullover_/status/1135910845257359361
+  // https://twitter.com/streloksig/status/1136005413617459202
+  // https://twitter.com/pullover_/status/1135910845257359361
+  // https://twitter.com/pullover_/status/1135832570669797376
   const res = await downloadMedia(process.argv[2]);
   console.log(res);
 })().catch(error => console.error(error));
