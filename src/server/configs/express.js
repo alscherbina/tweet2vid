@@ -6,6 +6,7 @@ const helmet = require('helmet');
 const cors = require('cors');
 const error = require('../middlewares/error');
 const log = require('./logger');
+const apiRouter = require('../routes/api');
 
 const app = express();
 
@@ -24,7 +25,7 @@ app.use(helmet());
 // enable CORS - Cross Origin Resource Sharing
 app.use(cors());
 
-app.get('/api', (req, res) => res.send('API root endpoint'));
+app.use('/api', apiRouter);
 
 app.get('*', (req, res) => {
   res.sendFile(path.resolve('public/index.html'));
