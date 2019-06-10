@@ -106,7 +106,12 @@ async function listMedia() {
   return { media: [...mediaIdList] };
 }
 
+function getVideoFilePath(mediaId) {
+  return `${videoDir}/${mediaId}.mp4`;
+}
+
 module.exports = {
   downloadMedia,
-  listMedia
+  listMedia,
+  getVideoFilePath
 };
