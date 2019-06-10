@@ -4,8 +4,9 @@ const videoService = require('../../model/video.service');
 
 const router = express.Router();
 
-router.get('/', (req, res) => {
-  res.send(videoService.listMedia);
+router.get('/', async (req, res) => {
+  const mediaList = await videoService.listMedia();
+  res.send(mediaList);
 });
 
 router.post('/task', async (req, res, next) => {

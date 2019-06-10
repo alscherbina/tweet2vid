@@ -1,8 +1,8 @@
 const express = require('express');
-const videoRouter = require('./video.js');
+const videoRouter = require('./videos.js');
 
 const router = express.Router();
 
-router.use('/video', videoRouter);
+router.use('/videos', videoRouter);
 
 module.exports = router;

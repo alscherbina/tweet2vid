@@ -5,6 +5,7 @@ const fs = require('fs');
 const parseM3u8 = require('parse-m3u8');
 const stream = require('stream');
 const util = require('util');
+const path = require('path');
 
 const pipeline = util.promisify(stream.pipeline);
 
@@ -97,7 +98,12 @@ async function downloadMedia(twitterPostURL) {
 }
 
 async function listMedia() {
-  return {};
+  const mediaFilesList = await fs.promises.readdir(videoDir);
+  // Assuming each media is represented by 2 files with same name and different extensions (jpg, mp4)
+  const mediaIdList = mediaFilesList.reduce((res, fileName) => {
+    return res.add(path.parse(fileName).name);
+  }, new Set());
+  return { media: [...mediaIdList] };
 }
 
 module.exports = {
