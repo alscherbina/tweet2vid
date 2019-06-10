@@ -8,7 +8,7 @@ const log = require('../configs/logger');
  */
 const handler = (err, req, res, next) => {
   const response = {
-    code: err.code,
+    code: err.code || err.status,
     message: err.message || httpStatus[err.status],
     errors: err.errors,
     stack: err.stack
@@ -20,7 +20,7 @@ const handler = (err, req, res, next) => {
     delete response.stack;
   }
 
-  res.status(err.status);
+  res.status(err.status || 500);
   res.json(response);
 };
 
