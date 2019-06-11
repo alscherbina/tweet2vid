@@ -2,7 +2,6 @@
 /* eslint-disable no-restricted-syntax */
 const needle = require('needle');
 const fs = require('fs');
-const parseM3u8 = require('parse-m3u8');
 const stream = require('stream');
 const util = require('util');
 const path = require('path');
@@ -20,77 +19,48 @@ if (!fs.existsSync(videoDir)) {
   fs.mkdirSync(videoDir);
 }
 
-async function getGuestToken() {
-  const response = await needle(
-    'post',
-    'https://api.twitter.com/1.1/guest/activate.json',
-    {},
-    { headers: defaultHeaders }
-  );
-  return response.body.guest_token;
-}
-
-async function getTweetConfig(tweetId) {
-  const guestToken = await getGuestToken();
-  const tweetConfigURL = `https://api.twitter.com/1.1/videos/tweet/config/${tweetId}.json`;
-  const headers = {
-    ...defaultHeaders,
-    'x-guest-token': guestToken
-  };
-  const response = await needle('get', tweetConfigURL, {}, { headers });
-  return response;
-}
-
-function chooseBestQualityPlaylist(playlists) {
-  const playlistWithBestQuality = playlists.reduce((result, playlist) => {
-    if (!result.attributes || result.attributes.BANDWIDTH < playlist.attributes.BANDWIDTH) {
-      return playlist;
-    }
-    return result;
-  }, {});
-  return playlistWithBestQuality;
-}
-
-async function downloadM3u8Media(uri, filename) {
-  const domain = 'https://video.twimg.com';
-  let response = await needle('get', uri);
-  let m3u8 = parseM3u8(response.body.toString('utf8'));
-  const playList = chooseBestQualityPlaylist(m3u8.playlists);
-  response = await needle('get', domain + playList.uri);
-  m3u8 = parseM3u8(response.body.toString('utf8'));
-  for (const segment of m3u8.segments) {
-    await pipeline(needle.get(domain + segment.uri), fs.createWriteStream(filename, { flags: 'a' }));
-  }
-}
-
 async function downloadFile(uri, filename) {
   return pipeline(needle.get(uri), fs.createWriteStream(filename));
 }
 
-async function downloadVideo(uri, filename) {
-  let videoDownloadPromise = Promise.resolve();
-  if (uri.includes('.m3u8')) {
-    videoDownloadPromise = downloadM3u8Media(uri, filename);
-  } else {
-    videoDownloadPromise = downloadFile(uri, filename);
-  }
-  return videoDownloadPromise;
+async function getTweet(tweetId) {
+  const response = await needle(
+    'get',
+    'https://api.twitter.com/1.1/statuses/show.json',
+    { id: tweetId },
+    { headers: defaultHeaders }
+  );
+  return response.body;
+}
+
+function chooseBestQualityMp4URL(variants) {
+  let result = variants.filter(item => {
+    return item.content_type === 'video/mp4';
+  });
+  result = result.reduce((res, item) => {
+    if (!res.bitrate || res.bitrate < item.bitrate) {
+      return item;
+    }
+    return res;
+  }, {});
+  return result.url;
 }
 
 async function downloadMedia(twitterPostURL) {
-  const tweetId = twitterPostURL.slice(twitterPostURL.lastIndexOf('/'));
+  const tweetId = twitterPostURL.slice(twitterPostURL.lastIndexOf('/') + 1);
   const result = {
     videoFile: `${videoDir}/${tweetId}.mp4`,
     thumbnailFile: `${videoDir}/${tweetId}.jpg`
   };
+  const tweet = await getTweet(tweetId);
+  if (tweet && tweet.extended_entities && tweet.extended_entities.media) {
+    const thumbnailURL = tweet.extended_entities.media[0].media_url;
+    const thumbnailDownloadPromise = downloadFile(thumbnailURL, result.thumbnailFile);
 
-  const tweetConfig = await getTweetConfig(tweetId);
-  if (tweetConfig && tweetConfig.body && tweetConfig.body.posterImage && tweetConfig.body.track) {
-    const posterImageUrl = tweetConfig.body.posterImage;
-    const imageDownloadPromise = downloadFile(posterImageUrl, result.thumbnailFile);
-    const { playbackUrl } = tweetConfig.body.track;
-    const videoDownloadPromise = downloadVideo(playbackUrl, result.videoFile);
-    await Promise.all([imageDownloadPromise, videoDownloadPromise]);
+    const videoURL = chooseBestQualityMp4URL(tweet.extended_entities.media[0].video_info.variants);
+    const videoDownloadPromise = downloadFile(videoURL, result.videoFile);
+
+    await Promise.all([thumbnailDownloadPromise, videoDownloadPromise]);
   } else {
     throw Error(`Can't load tweet video config from ${twitterPostURL}`);
   }
