@@ -12,8 +12,12 @@ router.get('/', async (req, res) => {
 
 router.post('/task', async (req, res, next) => {
   if (req.body.twitterPostURL) {
-    const mediaDescr = await videoService.downloadMedia(req.body.twitterPostURL);
-    res.send(mediaDescr);
+    try {
+      const mediaDescr = await videoService.downloadMedia(req.body.twitterPostURL);
+      res.send(mediaDescr);
+    } catch (err) {
+      next(err);
+    }
   } else {
     next({ status: httpStatus.BAD_REQUEST });
   }
