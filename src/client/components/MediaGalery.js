@@ -12,7 +12,13 @@ export default function MediaGalery() {
     loadMedia();
   }, []);
 
-  const list = state.media.map(item => <div key={item}>{item}</div>);
+  const list = state.media.map(item => (
+    <div key={item}>
+      <a href={`/api/videos/${item}`}>
+        <img src={`/${item}.jpg`} alt={item} width="200" height="200" />
+      </a>
+    </div>
+  ));
 
   return <div>{list}</div>;
 }
