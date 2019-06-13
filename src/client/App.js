@@ -1,9 +1,12 @@
 import React from 'react';
+import TaskSubmission from './components/TaskSubmission';
+import MediaGalery from './components/MediaGalery';
 
 export default function App() {
   return (
     <div>
-      <h1>Twee2vid</h1>
+      <TaskSubmission />
+      <MediaGalery />
     </div>
   );
 }
