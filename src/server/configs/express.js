@@ -14,7 +14,7 @@ const app = express();
 app.use(morgan('combined', { stream: log.stream }));
 
 app.use(express.static('public'));
-//app.use(express.static('videos'));
+app.use(express.static('videos'));
 app.use(express.json());
 
 // gzip compression
