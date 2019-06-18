@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import PubSub from 'pubsub-js';
 import axios from '../utils/axios';
+import { pubSub as ps } from '../utils/const';
 
 export default function TaskSubmission() {
   const [taskUrl, setTaskUrl] = useState('');
@@ -11,8 +13,13 @@ export default function TaskSubmission() {
 
   const submitTask = async () => {
     setSubmitting(true);
-    await axios.post('/videos/task', { twitterPostURL: taskUrl });
+    try {
+      await axios.post('/videos/task', { twitterPostURL: taskUrl });
+    } catch (e) {
+      console.log(e);
+    }
     setSubmitting(false);
+    PubSub.publish(ps.topics.MEDIA_LIST, ps.events.REFRESH);
   };
 
   return (
