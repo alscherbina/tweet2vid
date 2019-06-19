@@ -31,7 +31,7 @@ export default function MediaGalery() {
 
   const list = state.media.map(item => (
     <div key={item}>
-      <a href={`/api/videos/${item}`}>
+      <a href={`/${item}.mp4`}>
         <img src={`/${item}.jpg`} alt={item} width="200" height="200" />
       </a>
     </div>

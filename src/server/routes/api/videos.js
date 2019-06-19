@@ -23,7 +23,11 @@ router.post('/task', async (req, res, next) => {
   }
 });
 
-router.get('/:mediaId', async (req, res) => {
+/*
+   Not really needed since express.static serves mp4 in pretty much the same way,
+   so leaving this just for educational purposes
+*/
+router.get('/:mediaId.mp4', async (req, res) => {
   const path = videoService.getVideoFilePath(req.params.mediaId);
   const stat = fs.statSync(path);
   const fileSize = stat.size;

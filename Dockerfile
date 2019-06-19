@@ -14,7 +14,3 @@ RUN echo 'npm install --production' >> /boot.sh
 
 # npm start, make sure to have a start attribute in "scripts" in package.json
 CMD sh /boot.sh && npm start
-
-ENV myName John Doe
-ENV myDog Rex The Dog
-ENV myCat fluffy
