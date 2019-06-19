@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import PubSub from 'pubsub-js';
 import axios from '../utils/axios';
 import { pubSub as ps } from '../utils/const';
@@ -11,7 +11,8 @@ export default function TaskSubmission() {
     setTaskUrl(e.target.value);
   };
 
-  const submitTask = async () => {
+  const submitTask = async (e) => {
+    e.preventDefault();
     setSubmitting(true);
     try {
       await axios.post('/videos/task', { twitterPostURL: taskUrl });
@@ -23,13 +24,37 @@ export default function TaskSubmission() {
   };
 
   return (
-    <div>
-      <form>
-        <input name="url" type="text" value={taskUrl} onChange={onTaskInputChange} />
-        <button type="button" value="Load" onClick={submitTask} disabled={isSubmitting}>
-          Load video
-        </button>
-      </form>
+    <div className="container">
+      <div className="columns is-centered">
+        <div className="column is-half">
+          <form onSubmit={submitTask}>
+            <div className="field has-addons has-addons-centered">
+              <div className="control is-expanded">
+                <input
+                  className="input is-fullwidth"
+                  name="url"
+                  type="text"
+                  value={taskUrl}
+                  onChange={onTaskInputChange}
+                  placeholder="Tweet URL"
+                />
+              </div>
+              <div className="control">
+                <button
+                  className="button is-info"
+                  type="button"
+                  value="Load"
+                  onClick={submitTask}
+                  disabled={isSubmitting}
+                >
+                  Load video
+                </button>
+              </div>
+            </div>
+            <input type="submit" className="is-invisible" />
+          </form>
+        </div>
+      </div>
     </div>
   );
 }

@@ -3,7 +3,7 @@ import PubSub from 'pubsub-js';
 import axios from '../utils/axios';
 import { pubSub as ps } from '../utils/const';
 
-export default function MediaGalery() {
+export default function MediaGalery({ columnsNumber = 4 }) {
   const [state, setState] = useState({ media: [] });
   const [needRefresh, setNeedRefresh] = useState(true);
 
@@ -29,13 +29,35 @@ export default function MediaGalery() {
     };
   });
 
-  const list = state.media.map(item => (
-    <div key={item}>
-      <a href={`/${item}.mp4`}>
-        <img src={`/${item}.jpg`} alt={item} width="200" height="200" />
-      </a>
-    </div>
-  ));
+  const partitionedMediaList = state.media.reduce((res, item, idx, src) => {
+    const bucket = Math.floor(idx / columnsNumber);
+    if (!res[bucket]) {
+      res[bucket] = [];
+    }
+    res[bucket].push(item);
+    return res;
+  }, []);
 
-  return <div>{list}</div>;
+  const tilesList = partitionedMediaList.map((item, idx) => {
+    const key = item.reduce((res, mediaId) => {
+      return res + mediaId;
+    }, '');
+    const rowItems = item.map(mediaId => (
+      <div key={mediaId} className="tile is-parent">
+        <div className="tile is-child box">
+          <a href={`/${mediaId}.mp4`}>
+            <figure className="image is-1by1">
+              <img src={`/${mediaId}.jpg`} alt={mediaId} />
+            </figure>
+          </a>
+        </div>
+      </div>
+    ));
+    return (
+      <div key={key} className="tile is-ancestor">
+        {rowItems}
+      </div>
+    );
+  });
+  return <div className="container">{tilesList}</div>;
 }
