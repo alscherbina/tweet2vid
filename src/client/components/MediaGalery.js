@@ -29,7 +29,7 @@ export default function MediaGalery({ columnsNumber = 4 }) {
     };
   });
 
-  const partitionedMediaList = state.media.reduce((res, item, idx, src) => {
+  const partitionedMediaList = state.media.reduce((res, item, idx) => {
     const bucket = Math.floor(idx / columnsNumber);
     if (!res[bucket]) {
       res[bucket] = [];
@@ -38,13 +38,15 @@ export default function MediaGalery({ columnsNumber = 4 }) {
     return res;
   }, []);
 
-  const tilesList = partitionedMediaList.map((item, idx) => {
+  const columnWidthClass = `is-${Math.ceil(12 / columnsNumber)}`;
+
+  const tilesList = partitionedMediaList.map(item => {
     const key = item.reduce((res, mediaId) => {
       return res + mediaId;
     }, '');
     const rowItems = item.map(mediaId => (
-      <div key={mediaId} className="tile is-parent">
-        <div className="tile is-child box">
+      <div key={mediaId} className={`column ${columnWidthClass}`}>
+        <div className="box">
           <a href={`/${mediaId}.mp4`}>
             <figure className="image is-1by1">
               <img src={`/${mediaId}.jpg`} alt={mediaId} />
@@ -54,7 +56,7 @@ export default function MediaGalery({ columnsNumber = 4 }) {
       </div>
     ));
     return (
-      <div key={key} className="tile is-ancestor">
+      <div key={key} className="columns">
         {rowItems}
       </div>
     );

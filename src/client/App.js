@@ -6,7 +6,7 @@ export default function App() {
   return (
     <div>
       <TaskSubmission />
-      <MediaGalery />
+      <MediaGalery columnsNumber="4" />
     </div>
   );
 }
