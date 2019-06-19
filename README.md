@@ -1,2 +1,3 @@
 # tweet2vid
-Download and host videos from tweets
+Web app to download and host videos from Twitter.
+See example on http://tweet2vid.openode.io/
