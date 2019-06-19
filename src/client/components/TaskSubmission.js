@@ -6,22 +6,35 @@ import { pubSub as ps } from '../utils/const';
 export default function TaskSubmission() {
   const [taskUrl, setTaskUrl] = useState('');
   const [isSubmitting, setSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const onTaskInputChange = e => {
     setTaskUrl(e.target.value);
   };
 
-  const submitTask = async (e) => {
+  const submitTask = async e => {
     e.preventDefault();
+    setErrorMessage('');
     setSubmitting(true);
     try {
       await axios.post('/videos/task', { twitterPostURL: taskUrl });
-    } catch (e) {
-      console.log(e);
+    } catch (err) {
+      if (err.response) {
+        setErrorMessage(err.response.data.message);
+      } else if (err.request) {
+        setErrorMessage('No response from server.');
+      } else {
+        setErrorMessage('Can not make a request.');
+      }
     }
     setSubmitting(false);
     PubSub.publish(ps.topics.MEDIA_LIST, ps.events.REFRESH);
   };
+
+  let error;
+  if (errorMessage) {
+    error = <p className="help is-danger">{errorMessage}</p>;
+  }
 
   return (
     <div className="container">
@@ -51,6 +64,7 @@ export default function TaskSubmission() {
                 </button>
               </div>
             </div>
+            {error}
             <input type="submit" className="is-invisible" />
           </form>
         </div>
