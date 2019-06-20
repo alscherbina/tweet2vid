@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import 'bulma/css/bulma.min.css';
+import './css/app.css';
 import '@babel/polyfill';
 import App from './App';
 

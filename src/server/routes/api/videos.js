@@ -28,7 +28,7 @@ router.post('/task', async (req, res, next) => {
    so leaving this just for educational purposes
 */
 router.get('/:mediaId.mp4', async (req, res) => {
-  const path = videoService.getVideoFilePath(req.params.mediaId);
+  const path = videoService.getMediaPaths(req.params.mediaId).video;
   const stat = fs.statSync(path);
   const fileSize = stat.size;
   const range = req.headers.range;
@@ -56,6 +56,15 @@ router.get('/:mediaId.mp4', async (req, res) => {
     };
     res.writeHead(httpStatus.OK, head);
     fs.createReadStream(path).pipe(res);
+  }
+});
+
+router.delete('/:mediaId', async (req, res, next) => {
+  try {
+    await videoService.deleteMedia(req.params.mediaId);
+    res.sendStatus(httpStatus.OK);
+  } catch (err) {
+    next(err);
   }
 });
 

@@ -5,6 +5,7 @@ const fs = require('fs');
 const stream = require('stream');
 const util = require('util');
 const path = require('path');
+const logger = require('../configs/logger');
 
 const pipeline = util.promisify(stream.pipeline);
 
@@ -76,12 +77,33 @@ async function listMedia() {
   return { media: [...mediaIdList] };
 }
 
-function getVideoFilePath(mediaId) {
-  return `${videoDir}/${mediaId}.mp4`;
+function getMediaPaths(mediaId) {
+  return {
+    video: `${videoDir}/${mediaId}.mp4`,
+    image: `${videoDir}/${mediaId}.jpg`
+  };
+}
+
+function mediaIdIsValid(mediaId) {
+  return mediaId.match(/^[a-z0-9]+$/i);
+}
+
+async function deleteMedia(mediaId) {
+  if (!mediaIdIsValid(mediaId)) {
+    logger.info(`Rejected deletion of media with id=${mediaId}, since it's not a valid id`);
+    throw Error(`Id "${mediaId}" is not a valid media ID`);
+  }
+  const paths = getMediaPaths(mediaId);
+  try {
+    await Promise.all([fs.promises.unlink(paths.video), fs.promises.unlink(paths.image)]);
+  } catch (e) {
+    throw Error(`Can't delete media with id="${mediaId}"`);
+  }
 }
 
 module.exports = {
   downloadMedia,
   listMedia,
-  getVideoFilePath
+  getMediaPaths,
+  deleteMedia
 };

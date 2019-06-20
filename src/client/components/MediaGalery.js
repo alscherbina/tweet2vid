@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import PubSub from 'pubsub-js';
 import axios from '../utils/axios';
-import { pubSub as ps } from '../utils/const';
+import { pubSub as psConst } from '../utils/const';
+import MediaGalleryItem from './MediaGallryItem';
 
 export default function MediaGalery({ columnsNumber = 4 }) {
   const [state, setState] = useState({ media: [] });
@@ -19,8 +20,8 @@ export default function MediaGalery({ columnsNumber = 4 }) {
   }, [needRefresh]);
 
   useEffect(() => {
-    const token = PubSub.subscribe(ps.topics.MEDIA_LIST, (msg, data) => {
-      if (data === ps.events.REFRESH) {
+    const token = PubSub.subscribe(psConst.topics.MEDIA_LIST, (msg, data) => {
+      if (data === psConst.events.REFRESH) {
         setNeedRefresh(true);
       }
     });
@@ -38,22 +39,14 @@ export default function MediaGalery({ columnsNumber = 4 }) {
     return res;
   }, []);
 
-  const columnWidthClass = `is-${Math.ceil(12 / columnsNumber)}`;
+  const columnWidth = Math.ceil(12 / columnsNumber);
 
   const tilesList = partitionedMediaList.map(item => {
     const key = item.reduce((res, mediaId) => {
       return res + mediaId;
     }, '');
     const rowItems = item.map(mediaId => (
-      <div key={mediaId} className={`column ${columnWidthClass}`}>
-        <div className="box">
-          <a href={`/${mediaId}.mp4`}>
-            <figure className="image is-1by1">
-              <img src={`/${mediaId}.jpg`} alt={mediaId} />
-            </figure>
-          </a>
-        </div>
-      </div>
+      <MediaGalleryItem key={mediaId} mediaId={mediaId} columnWidth={columnWidth} />
     ));
     return (
       <div key={key} className="columns">
