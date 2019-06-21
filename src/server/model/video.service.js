@@ -74,7 +74,7 @@ async function listMedia() {
     return path.parse(fileName).ext === '.mp4';
   });
   let videoFilesWithDatesList = videoFilesList.map(async fileName => {
-    const stat = await fs.promises.stat(`${videoDir}\\${fileName}`);
+    const stat = await fs.promises.stat(`${videoDir}/${fileName}`);
     return { fileName, time: stat.birthtimeMs };
   });
   videoFilesWithDatesList = await Promise.all(videoFilesWithDatesList);
