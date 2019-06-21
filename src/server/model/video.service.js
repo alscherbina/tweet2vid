@@ -69,12 +69,18 @@ async function downloadMedia(twitterPostURL) {
 }
 
 async function listMedia() {
-  const mediaFilesList = await fs.promises.readdir(videoDir);
-  // Assuming each media is represented by 2 files with same name and different extensions (jpg, mp4)
-  const mediaIdList = mediaFilesList.reduce((res, fileName) => {
-    return res.add(path.parse(fileName).name);
-  }, new Set());
-  return { media: [...mediaIdList] };
+  const filesList = await fs.promises.readdir(videoDir);
+  const videoFilesList = filesList.filter(fileName => {
+    return path.parse(fileName).ext === '.mp4';
+  });
+  let videoFilesWithDatesList = videoFilesList.map(async fileName => {
+    const stat = await fs.promises.stat(`${videoDir}\\${fileName}`);
+    return { fileName, time: stat.birthtimeMs };
+  });
+  videoFilesWithDatesList = await Promise.all(videoFilesWithDatesList);
+  videoFilesWithDatesList.sort((f1, f2) => f2.time - f1.time);
+  const orderedMediaIdList = videoFilesWithDatesList.map(f => path.parse(f.fileName).name);
+  return { media: orderedMediaIdList };
 }
 
 function getMediaPaths(mediaId) {
