@@ -9,7 +9,7 @@
     "watch": "concurrently \"npm:watch-*\"",
     "watch-client": "webpack-dev-server --mode development --watch",
     "watch-server": "nodemon -w src/server src/server/server.js",
-    "test": "jest"
+    "test": "jest --coverage"
   },
   "keywords": [],
   "author": "",
