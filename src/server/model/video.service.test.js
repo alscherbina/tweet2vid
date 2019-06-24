@@ -29,12 +29,12 @@ describe('Delete media', () => {
     try {
       await videoService.deleteMedia('1232142@#$');
     } catch (err) {}
-    expect(logger.info.mock.calls.length).toBe(1);
+    expect(logger.info).toHaveBeenCalledTimes(1);
   });
 
   test('Delete media with valid ID should delete mp4 and jpg files via fs.promises.unlink', async () => {
     await expect(videoService.deleteMedia('1232142')).resolves;
-    expect(fs.promises.unlink.mock.calls.length).toBe(2);
+    expect(fs.promises.unlink).toHaveBeenCalledTimes(2);
   });
 
   test('Delete media with valid ID should throw error in case of fs issues', async () => {
