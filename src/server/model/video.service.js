@@ -48,7 +48,8 @@ function chooseBestQualityMp4URL(variants) {
 }
 
 async function downloadMedia(twitterPostURL) {
-  const tweetId = twitterPostURL.slice(twitterPostURL.lastIndexOf('/') + 1);
+  const tweetPathName = new URL(twitterPostURL).pathname;
+  const tweetId = tweetPathName.slice(tweetPathName.lastIndexOf('/') + 1);
   const result = {
     videoFile: `${videoDir}/${tweetId}.mp4`,
     thumbnailFile: `${videoDir}/${tweetId}.jpg`
