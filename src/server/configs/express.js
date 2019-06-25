@@ -14,6 +14,9 @@ const app = express();
 // TODO use general log for requests logging for now, should be separate log in future
 app.use(morgan('combined', { stream: log.stream }));
 
+// setup Telegram bot
+app.use(botRouter);
+
 // gzip compression
 app.use(compression());
 
@@ -27,7 +30,6 @@ app.use(express.static('public'));
 app.use(express.static('videos'));
 app.use(express.json());
 
-app.use(botRouter);
 app.use('/api', apiRouter);
 
 app.get('*', (req, res) => {
