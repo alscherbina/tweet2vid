@@ -51,16 +51,18 @@ async function downloadMedia(twitterPostURL) {
   const tweetPathName = new URL(twitterPostURL).pathname;
   const tweetId = tweetPathName.slice(tweetPathName.lastIndexOf('/') + 1);
   const result = {
-    videoFile: `${videoDir}/${tweetId}.mp4`,
-    thumbnailFile: `${videoDir}/${tweetId}.jpg`
+    videoFileName: `${tweetId}.mp4`,
+    videoFilePath: `${videoDir}/${tweetId}.mp4`,
+    thumbnailFileName: `${tweetId}.jpg`,
+    thumbnailFilePath: `${videoDir}/${tweetId}.jpg`
   };
   const tweet = await getTweet(tweetId);
   if (tweet && tweet.extended_entities && tweet.extended_entities.media) {
     const thumbnailURL = tweet.extended_entities.media[0].media_url;
-    const thumbnailDownloadPromise = downloadFile(thumbnailURL, result.thumbnailFile);
+    const thumbnailDownloadPromise = downloadFile(thumbnailURL, result.thumbnailFilePath);
 
     const videoURL = chooseBestQualityMp4URL(tweet.extended_entities.media[0].video_info.variants);
-    const videoDownloadPromise = downloadFile(videoURL, result.videoFile);
+    const videoDownloadPromise = downloadFile(videoURL, result.videoFilePath);
 
     await Promise.all([thumbnailDownloadPromise, videoDownloadPromise]);
   } else {
