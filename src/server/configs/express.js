@@ -7,6 +7,7 @@ const cors = require('cors');
 const error = require('../middlewares/error');
 const log = require('./logger');
 const apiRouter = require('../routes/api');
+const botRouter = require('../routes/telegram.bot');
 
 const app = express();
 
@@ -26,6 +27,7 @@ app.use(express.static('public'));
 app.use(express.static('videos'));
 app.use(express.json());
 
+app.use(botRouter);
 app.use('/api', apiRouter);
 
 app.get('*', (req, res) => {
