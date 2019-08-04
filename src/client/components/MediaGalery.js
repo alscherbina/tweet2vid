@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import PubSub from 'pubsub-js';
 import axios from '../utils/axios';
 import { pubSub as psConst } from '../utils/const';
-import MediaGalleryItem from './MediaGallryItem';
+import MediaGalleryItem from './MediaGalleryItem';
 
 export default function MediaGalery({ columnsNumber = 4 }) {
   const [state, setState] = useState({ media: [] });
